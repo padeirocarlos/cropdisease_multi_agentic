@@ -1,0 +1,38 @@
+{
+    "mcpServers": {
+        
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "." ]
+        },
+        
+        "agromarket": {
+            "command": "uv",
+            "args": ["run", "mcp_server/agromarket_server.py"]
+        },
+
+        "email": {
+            "command": "uv",
+            "args": ["run", "mcp_server/email_server.py"]
+        },
+        
+        "search": {
+            "command": "uv",
+            "args": ["run", "mcp_server/search_server.py"]
+        },
+
+        "filesystemserver": {
+            "command": "uv",
+            "args": ["run", "mcp_server/filesystem_server.py"]
+        },
+
+        "fetch": {
+            "command": "uvx",
+            "args": ["mcp-server-fetch"]
+        }
+    }
+}
+  
