@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 
+generate_image_path/
 # Virtual environments
 .venv
 # Virtual environments
