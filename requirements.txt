@@ -690,3 +690,9 @@ zipp==3.23.0
     # via importlib-metadata
 zstandard==0.23.0
     # via langsmith
+torchvision==0.24.0
+    # torchvision
+diffusers==0.34.0
+    # diffusers
+bitsandbytes==0.48.1
+    # bitsandbytes

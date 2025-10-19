@@ -1,5 +1,7 @@
 import os
+import gc
 import json
+import torch
 from dotenv import load_dotenv
 from contextlib import AsyncExitStack
 from typing import List, Dict, TypedDict
@@ -91,6 +93,9 @@ class Multi_MCP_Server:
     async def cleanup(self): # new
         """Cleanly close all resources using AsyncExitStack."""
         await self.exit_stack.aclose()
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     
     async def call_tool(self, tool_name:str, tool_args:dict):
         # Call a tool

@@ -1,6 +1,7 @@
 
 import os
 import re
+import gc
 import json
 from datetime import datetime
 
@@ -153,38 +154,18 @@ class DiseaseDiagnosis:
             for i, prompt_ in enumerate(prompt):
                 dt = datetime.now()
                 name = f"prompt_{i}_{dt.strftime("%Y_%m_%d")}{dt.hour}{dt.minute}{dt.second}"
-                out_path_name=os.path.join(os.getcwd(),"out_puts",f"{name}.png")
-                # out_path_name=os.path.join("out_puts",f"{name}.png")
+                out_path_name=os.path.join(os.getcwd(),"generate_image_path",f"{name}.png")
+                # out_path_name=os.path.join("generate_image_path",f"{name}.png")
                 
-                if False:
-                    self.image_generate.memory_optimizer(optimizer_type="offload") 
-                    self.image_generate.memory_optimizer(optimizer_type="vae_slicing") 
-                    self.image_generate.memory_optimizer(optimizer_type="attention_slicing") 
+                self.image_generate.memory_optimizer(optimizer_type="offload") 
+                self.image_generate.memory_optimizer(optimizer_type="vae_slicing") 
+                self.image_generate.memory_optimizer(optimizer_type="attention_slicing") 
                 
-                image = self.image_generate.generate(prompt = prompt_)
-                image.save(out_path_name)
+                image = self.image_generate.generate(prompt = prompt_, device="cpu")
+                image[0].save(out_path_name)
+                if i>=3: # consider only 3 prompts
+                    break
             
-            # Save image locally
-            # img_bytes = requests.get(image_url1).content
-            # img = Image.open(BytesIO(img_bytes))
-
-            # filename = os.path.basename(image_url1.split("?")[0])
-            # image_path0 = filename+"0"
-            # img.save(os.path.join(os.getcwd(), "generate_image_path/", {image_path0}))
-            
-            # img_bytes = requests.get(image_url2).content
-            # img = Image.open(BytesIO(img_bytes))
-
-            # filename = os.path.basename(image_url2.split("?")[0])
-            # image_path1 = filename+"1"
-            # img.save(os.path.join(os.getcwd(), "generate_image_path/", {image_path1}))
-            
-            # return {
-            #     "caption": caption,
-            #     "image_url1": image_url1,
-            #     "image_url2": image_url2,
-            #     }
-        
         except Exception as e:
             print(f"Error running diagnosis {self.name}: {e}")
     

@@ -4,11 +4,11 @@ from agentics.agentic import DiseaseDiagnosis
 
 load_dotenv(override=True)
 
-async def main(query:str="Russet Burbank Potato"):
-    
-    print(" ====== Hello from mult-agent! ====== ")
-    query = input("What kind of crop disease would like to search and know about ?").strip()
-    diseaseDiagnosis = DiseaseDiagnosis(name="Mult-agent")
+async def main(query:str="Maize Streak Virus (MSV)"): # Northern corn Leaf Blight Fall ArmyWorm
+     
+    print(" ====== Hello from crop disease mult-agentic! ====== ")
+    query = input("What kind of maize disease would like to search and know about ?").strip()
+    diseaseDiagnosis = DiseaseDiagnosis(name="Cropdisease-Mult-Agentic")
     
     if not query:
         await diseaseDiagnosis.run(query)

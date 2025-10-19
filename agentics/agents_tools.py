@@ -7,17 +7,10 @@ from dotenv import load_dotenv
 from huggingface_hub import login
 from utils.api_base_url import ApiConfig
 from diffusers import StableDiffusionPipeline, AutoPipelineForText2Image, DiffusionPipeline
-from transformers import AutoTokenizer, AutoModelForCausalLM, TextStreamer, BitsAndBytesConfig
+# from transformers import AutoTokenizer, AutoModelForCausalLM, TextStreamer, BitsAndBytesConfig
 
 load_dotenv(override=True)
 hf_token = os.getenv(ApiConfig.HUGGING_FACE_API_TOKEN)
-
-quant_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_use_double_quant=True,
-                bnb_4bit_compute_dtype=torch.bfloat16,
-                bnb_4bit_quant_type="nf4"
-                )
 
 ## Decision Tree: Which Pipeline to Use?
 # ```
@@ -36,17 +29,17 @@ quant_config = BitsAndBytesConfig(
 
 class ImageGenerator:
     
-    def __init__(self, model_id:str = "stabilityai/stable-diffusion-xl-base-1.0",torch_dtype=torch.float16):
+    def __init__(self, model_id:str = "stabilityai/stable-diffusion-xl-base-1.0",dtype=torch.float16):
         login(hf_token, add_to_git_credential=True)
-        self.torch_dtype = torch_dtype
+        self.dtype = dtype
         
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
                     model_id,
-                    torch_dtype = self.torch_dtype,
+                    dtype = self.dtype,
                     safety_checker = True, 
                     use_safetensors = True,
-                    quantization_config=quant_config,
-                    variant="fp16")
+                    # variant="fp16"
+                    )
     
     def memory_optimizer(self, optimizer_type:str="offload"):
         if optimizer_type == "offload":
@@ -67,11 +60,11 @@ class ImageGenerator:
             
             self.pipeline = AutoPipelineForText2Image.from_pretrained(
                     model_id,
-                    torch_dtype = self.torch_dtype,
+                    dtype = self.dtype,
                     safety_checker = True, 
                     use_safetensors = True,
-                    quantization_config=quant_config,
-                    variant="fp16")
+                    # variant="fp16"
+                    ).to(device)
                 
             image =  self.pipeline(
                 prompt = prompt,
@@ -79,9 +72,7 @@ class ImageGenerator:
                 num_inference_steps = 40,
                 guidance_scale = 7.5,
                 height = size[0],
-                width = size[1]
-                ).to(device)
-            
+                width = size[1],)
             return image[0]
             
         if pipeline_type == "diffusion":
@@ -91,21 +82,20 @@ class ImageGenerator:
             # Explicitly for Stable Diffusion v1.x/v2.x
             self.pipeline = DiffusionPipeline.from_pretrained(
                     model_id,
-                    torch_dtype = self.torch_dtype,
+                    dtype = self.dtype,
                     safety_checker = True, 
                     use_safetensors = True,
-                    quantization_config=quant_config,
-                    variant="fp16")
-            self.pipeline = self.pipeline.to("cuda")
-
+                    # variant="fp16"
+                    ).to(device)
+            
             image = self.pipeline(
                 prompt=prompt,
                 negative_prompt = negative_prompt,
                 num_inference_steps = 50,
                 guidance_scale = 7.5,
                 height = size[0],
-                width = size[1]
-            )
+                width = size[1],)
+            
             return image[0]
     
         if pipeline_type == "stableDiffusion":
@@ -116,14 +106,11 @@ class ImageGenerator:
             # Explicitly for Stable Diffusion v1.x/v2.x
             self.pipeline = StableDiffusionPipeline.from_pretrained(
                     model_id,
-                    torch_dtype = self.torch_dtype,
-                    safety_checker = True, 
+                    # dtype = self.dtype, # Not used in Stable Diffusion pipeline
+                    # safety_checker = True, # Not used in Stable Diffusion pipeline
                     use_safetensors = True,
-                    quantization_config=quant_config,
-                    variant="fp16")
+                    variant="fp16").to("cuda")
             
-            self.pipeline = self.pipeline.to("cuda")
-
             # Classic SD interface
             image = self.pipeline(
                 prompt=prompt,
