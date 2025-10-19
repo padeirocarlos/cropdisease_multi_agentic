@@ -40,7 +40,10 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 ## 🚀 Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/<username>/cropdisease_multi_agentic.git
+   git clone https://github.com/padeirocarlos/cropdisease_multi_agentic.git
+   curl -fsSL https://ollama.com/install.sh | sh
+   ollama server
+   ollama pull ollama3  # pull one of this model:  gemma4B_v gemma12B_v qwen3 gemini ollama3.2 deepseek
    cd cropdisease_multi_agentic
    uv add -r requirements.txt
    uv run main.py
