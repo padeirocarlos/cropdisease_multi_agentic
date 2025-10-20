@@ -19,7 +19,7 @@ class CommonTools:
         load_dotenv(override=True)
 
     @function_tool
-    def send_email_body(body: str, subject: str, to_emails:list):
+    def email_sender(body: str, subject: str, to_emails:list):
         """ Send out an email with the given body to all sales prospects via Gmail SMTP """
         
         # Set up email sender, recipient, and content

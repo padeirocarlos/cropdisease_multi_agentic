@@ -15,6 +15,16 @@ load_dotenv(override=True)
 
 mcp = FastMCP(name="filesystem-mcp-server")
 
+@mcp.resource("config://app-version")
+def get_app_version() -> dict:
+    """Static resource providing application version information"""
+    return {
+        "name": "filesystem-mcp-server",
+        "version": "1.0.0",
+        "release_date": "2025-10-15",
+        "environment": "production"
+    }
+    
 @mcp.tool()
 def read_file(path: str) -> str:
     """Read contents of a file.

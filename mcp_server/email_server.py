@@ -6,26 +6,52 @@ from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from datetime import datetime, timezone
 
-from mcp.server import FastMCP
+from mcp.server.fastmcp import FastMCP
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 
 load_dotenv(override=True)
 
 # Create FastMCP server
-mcp = FastMCP("Email Management Server")
+mcp = FastMCP(name="Email-Management-Server")
 
 @mcp.resource("config://app-version")
 def get_app_version() -> dict:
     """Static resource providing application version information"""
     return {
-        "name": "Email Management Server",
+        "name": "Email-Management-Server",
         "version": "1.0.0",
         "release_date": "2025-10-15",
         "environment": "production"
     }
 
 
+email_tool_def = {
+    "type": "function",
+    "function": {
+        "name": "email_sender",
+        "description": "Searches for research papers on arXiv by query string.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "description": "body content of the email."
+                },
+                "subject": {
+                    "type": "string",
+                    "description": "subject of the email.",
+                },
+                
+                "to_emails": {
+                    "type": "string",
+                    "description": "the list of destined email.",
+                }
+            },
+            "required": ["subject"]
+        }
+    }
+}
 @mcp.tool()
 def email_sender(body: str=None, subject: str=None, to_emails:list=None):
     """ Send out an email with the given body to all sales prospects via Gmail SMTP """
@@ -57,7 +83,6 @@ def email_sender(body: str=None, subject: str=None, to_emails:list=None):
     if to_email is not None:
         msg['To'] = to_email
     
-    print(f" subject : {subject} ,  from_email: {from_email}  , to_email: {to_email} ,  gmail_app_password: {gmail_app_password}")
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
             if to_email:

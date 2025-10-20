@@ -1,8 +1,9 @@
+import os
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv(override=True)
 
-def image_generate(pathsogens:str, prompts:list[str], caption:str, path:str)->str:
+def image_generate(pathsogens:str, prompts:list[str], caption:str, path:str, maize:str="Maize")->str:
     
     _prompt = ""
     
@@ -29,7 +30,31 @@ def image_generate(pathsogens:str, prompts:list[str], caption:str, path:str)->st
     """)
     return prompt_
 
-def crop_disease_image_prediction(crop_disease: str, caption_style: str = "short punchy", moths_one:int=2, moths_two:int=4,) -> str:
+def crop_disease_image_prediction(crop_disease: str, maize:str="Maize") -> str:
+    
+    user_prompt = f"""
+        You are a visual medical assistant for {maize} plant pathology. Based on agricultural trend insights, 
+        create detailed visual prompts for an AI image generation model to generate realistic 
+        images of {maize} leaves affected by {crop_disease}.
+            
+        Trend insights crop diseases related to:
+        {crop_disease}
+
+        Please output:
+        1. VISUAL PROMPT: A comprehensive, detailed description for AI image generation that includes:
+            - Specific visual symptoms and patterns of {crop_disease} on {maize} leaves
+            - Color variations, lesions, spots, or discoloration characteristics
+            - Leaf texture changes, wilting, or deformation details
+            - Growth stage of the {maize} plant
+        2. A concise, informative caption describing the {maize} disease manifestation and key identifying features
+
+        Respond in this format:
+        {{"prompt1": "...", "caption1": "...", "prompt2": "...", "caption2": "..."}}
+        """
+    return user_prompt
+
+
+def crop_disease_image_prediction_(crop_disease: str, caption_style: str = "short punchy", moths_one:int=2, moths_two:int=4,) -> str:
     
     user_prompt = f"""
         You are a visual marketing assistant. Based on the input trend insights, 
@@ -48,8 +73,8 @@ def crop_disease_image_prediction(crop_disease: str, caption_style: str = "short
         {{"prompt1": "...", "caption1": "...", "prompt2": "...", "caption2": "..."}}
         """
     return user_prompt
-        
-def crop_disease_research(crop_disease:str, tools: list[dict]=None) -> str:
+     
+def crop_disease_research(crop_disease:str, maize:str="Maize", tools: list[dict]=None) -> str:
     
     tools_ = ""
 
@@ -59,12 +84,12 @@ def crop_disease_research(crop_disease:str, tools: list[dict]=None) -> str:
         tools_ += f"{i+1}. {name} {description} \n"
     
     prompt_ = f"""
-        You are a crop disease diagnosis researcher. You are able to search the web for the latest 
-        developments in {crop_disease} crop diseases. Based on the request, 
+        You are a {maize} crop disease diagnosis researcher. You are able to search the web for the latest 
+        developments in {maize} {crop_disease} crop diseases. Based on the request, 
         you carry out necessary research and respond with your findings.
 
         Your goal:
-        1. Explore current crop diseases trends related to {crop_disease} using web search.
+        1. Explore current {maize} crop diseases trends related to {crop_disease} using web search.
         2. Review the geographic regions and climate conditions for {crop_disease} crop diseases pathology treatment.
         3. Recommend one or more {crop_disease} crop diseases treatment methods that best match emerging trends.
         4. If needed, today date is {datetime.now().strftime("%Y-%m-%d")}.
@@ -73,18 +98,16 @@ def crop_disease_research(crop_disease:str, tools: list[dict]=None) -> str:
         {tools_}
 
         Once your analysis is complete, summarize:
-        - The top 2 - 3 crop diseases pathology treatment and their disease profiles.
+        - The top 2 - 3 {maize} crop diseases pathology treatment and their disease profiles.
         - Pathogens (fungi, bacteria, viruses) and their characteristics.
-        - Treatment methods and resistance data.
-        - Geographic regions and climate conditions.
-        - Agricultural websites and research institutions.
+        - {maize} treatment methods and resistance data.
         
         Respond in this format:
         {{"treatment": "...", "pathogens": "...", "medicine": "..."}}
         """
     return prompt_
 
-def diagnosis_instructions(cropdisease_infomation:str = "Russet Burbank Potato"):
+def diagnosis_instructions(cropdisease_infomation:str = "Russet Burbank Potato", maize:str="Maize"):
     return f"""You are a crop disease diagnosis researcher. You are able to search the web for the latest developments in plant pathology, 
     monitor emerging crop diseases based on this information {cropdisease_infomation} , and assist with agricultural diagnostics and research.
     Based on the request, you carry out necessary research and respond with your findings.
@@ -132,3 +155,33 @@ def email_instructions(recipient_email:str="c.v.padeiro@gmail.com", sender_email
         
     return EMAIL_INSTRUCTIONS
 
+def email_instruction(report:str="",  to_emails:str="c.v.padeiro@gmail.com", email_sender_tool:str="email_sender"):
+    
+    f"""
+        You are an email communication assistant tasked with sending a professional HTML-formatted report to stakeholders.
+
+        CONTEXT:
+        - Report content: {report}
+        - Sender email(s): {os.getenv("GMAIL_USER")}
+        - Recipient email(s): {to_emails}
+        - Available tool: {email_sender_tool}
+
+        TASK:
+        1. Translate the entire email content (subject and body) into European Portuguese
+        2. Convert the report into clean, well-structured HTML format
+        3. Create an appropriate subject line that reflects the report content
+        4. Send the email using only the '{email_sender_tool}' tool provided by mcp_server
+
+        REQUIREMENTS:
+            - Language: European Portuguese (pt-PT)
+            - Format: Professional HTML email
+            - Content: Must include the complete translated report
+            - Tools: Use only the specified email sender tool
+
+        EMAIL STRUCTURE:
+            - Subject line: Clear, descriptive, and professional
+            - HTML body: Well-formatted, readable, with proper structure
+            - Professional tone appropriate for business communication
+
+        Ensure the HTML is clean, responsive-friendly, and accessible across different email clients.
+        """

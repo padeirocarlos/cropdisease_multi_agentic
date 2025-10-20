@@ -3,6 +3,7 @@ import os
 import re
 import gc
 import json
+from typing import TypedDict
 from datetime import datetime
 
 # --- Third-party ---
@@ -17,7 +18,7 @@ from .agents_client import model_client_name_dict
 from mcp_server.multi_mcp_server import Multi_MCP_Server
 from .out_puts import DiseaseSearchDataResult, PromptDataResult, ImageUrlResult
 from utils.search_tools import tavily_tool_def, wikipedia_tool_def, arxiv_tool_def
-from .instructions import diagnosis_instructions, image_generate, diagnosis_tool, email_instructions, crop_disease_research, crop_disease_image_prediction
+from .instructions import diagnosis_instructions, image_generate, diagnosis_tool, email_instruction, crop_disease_research, crop_disease_image_prediction
 
 load_dotenv(override=True)
     
@@ -49,9 +50,8 @@ class DiseaseDiagnosis:
             output_type=output_type,
             )
     
-    async def crop_disease_image_prompt_agent(self, crop_disease: str, 
-                                              caption_style: str = "short punchy", 
-                                              moths_one:int=2, moths_two:int=4, 
+    async def crop_disease_image_prompt_agent(self, crop_disease: str,
+                                              maize:str, 
                                               model_name: str = None, 
                                               output_type=None) -> Agent:
         if self.multi_mcp_server is None:
@@ -61,8 +61,7 @@ class DiseaseDiagnosis:
             name = self.name,
             tools = self.multi_mcp_server.available_tools,
             instructions = crop_disease_image_prediction(crop_disease=crop_disease, 
-                                                         caption_style = caption_style, 
-                                                         moths_one=moths_one, moths_two=moths_two),
+                                                         maize = maize, ),
             model = self.get_model(self.model_name) if model_name is None else self.get_model(model_name),
             output_type=output_type,)
         
@@ -81,13 +80,23 @@ class DiseaseDiagnosis:
             model = self.get_model(self.model_name) if model_name is None else self.get_model(model_name),
             output_type=output_type,)
         
-    async def create_email_agent(self, report, model_name:str="llama3.2", output_type=None) -> Agent:
+    async def create_email_agent(self, report, to_emails:str, email_sender_tool:str="email_sender", model_name:str="llama3.2", output_type=None) -> Agent:
 
+        if self.multi_mcp_server is None:
+            self.multi_mcp_server = await self.connect_to_servers()
+        
+        prompt_ = email_instruction(report=report, 
+                                    to_emails=to_emails, 
+                                    email_sender_tool = email_sender_tool,)
+
+        # tools = [await self.multi_mcp_server.call_tool(tool_name=email_sender_tool, arguments={"body":None, "subject":None, "to_emails":None})]
+        tools = self.multi_mcp_server.available_tools
+        
         return Agent(
             name = self.name,
-            instructions = email_instructions(report=report),
+            instructions = prompt_,
             model = self.get_model(model_name),
-            tools = self.multi_mcp_server.available_tools,
+            tools = tools,
             output_type=output_type,)
     
     async def create_disease_agent(self, query:str, diagnosis_mcp_servers, model_name:str="llama3.2", output_type=None) -> Agent:
@@ -99,10 +108,10 @@ class DiseaseDiagnosis:
             tools = self.multi_mcp_server.available_tools,
             output_type=output_type,)
     
-    async def run(self, query:str="Russet Burbank Potato"):
+    async def run(self, query:str="Maize Streak Virus (MSV)", maize:str="Maize"):
         tools_details = [tavily_tool_def, wikipedia_tool_def, arxiv_tool_def]
         try:
-            research_agent = await self.crop_disease_research_agent(crop_disease = query, 
+            research_agent = await self.crop_disease_research_agent(crop_disease = f"{maize} {query}", 
                                                                     tools_details = tools_details,
                                                                     model_name=self.get_model("qwen3"), # gemma12B_v gemma4B_v qwen3 gemini deepseek qwen3-coder
                                                                     # output_type=None,
@@ -110,15 +119,16 @@ class DiseaseDiagnosis:
                                                                     )
             research_agent_result = await Runner.run(research_agent, query)
             pathsogens = research_agent_result.final_output.pathsogens
+            medicine = research_agent_result.final_output.medicine
+            treatment = research_agent_result.final_output.treatment
             await self.multi_mcp_server.cleanup()
             
             print(f" research_agent_result : === pathsogens : {pathsogens} === \n ")
             
             
-            prompt_agent = await self.crop_disease_image_prompt_agent(crop_disease = pathsogens, 
-                                                                    moths_one=2, 
-                                                                    moths_two=4,
-                                                                    model_name=self.get_model("gemma12B_v"), # llama3 gemma12B_v gemma4B_v qwen3 gemini deepseek qwen3-coder
+            prompt_agent = await self.crop_disease_image_prompt_agent(crop_disease = pathsogens,
+                                                                    maize=maize, 
+                                                                    model_name=self.get_model("llama3.2"), # llama3 gemma12B_v gemma4B_v qwen3 gemini deepseek qwen3-coder
                                                                     output_type=PromptDataResult,
                                                                     )
             
@@ -131,25 +141,19 @@ class DiseaseDiagnosis:
             print(f" prompt_agent_result : === prompt : {prompt} === \n caption : {caption}  \n")
             
             system_message = (f"""
-                "You are a visual crop disease assistant. Based on the input trend insights in {pathsogens}, 
-                generate two images using a given prompt and caption.""")
+                "You are an email communication assistant tasked with sending a professional HTML-formatted report to Agriculter farmer.""")
             
-            prompt_ = image_generate(pathsogens=pathsogens, 
-                                     prompts=prompt, 
-                                     caption=caption,
-                                     path=os.path.join(os.getcwd(), "generate_image_path"))
+            report_ = f"Treatment: {treatment} \n  Medicine: {medicine}\n Pathsogens: {pathsogens} \n "
             
-            generate_agent = await self.crop_disease_image_generate_agent(prompt=prompt_,
-                                                                          model_name= "gemma12B_v",
-                                                                        # response_format="url", 
-                                                                          output_type=ImageUrlResult)  # "llava7B_v", "qwen2_v", "gemma12B_v"
             
-            generate_agent_result = await Runner.run(generate_agent, system_message)
-            image_url1 = generate_agent_result.final_output.imageUrl1
-            image_url2 = generate_agent_result.final_output.imageUrl2
+            generate_agent = await self.create_email_agent(report=report_,
+                                                         to_emails="c.v.padeiro@gmail.com, cpadeiro2012@gmail.com",
+                                                         model_name= "llama3.2",
+                                                         email_sender_tool="email_sender",
+                                                         output_type=ImageUrlResult)  # "llava7B_v", "qwen2_v", "gemma12B_v"
+            
+            await Runner.run(generate_agent, system_message)
             await self.multi_mcp_server.cleanup()
-            
-            print(f" generate_agent_result : === imageUrl1: {image_url1}  \n imageUrl2: {image_url2} === ")
             
             for i, prompt_ in enumerate(prompt):
                 dt = datetime.now()

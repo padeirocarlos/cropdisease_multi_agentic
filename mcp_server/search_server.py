@@ -9,7 +9,7 @@ import requests
 import wikipedia
 from dotenv import load_dotenv
 from tavily import TavilyClient
-from mcp.server import FastMCP
+from mcp.server.fastmcp import FastMCP
 
 # Init env
 load_dotenv(override=True)  # load variables 
@@ -21,6 +21,16 @@ session.headers.update({
     "User-Agent": f"LF-ADP-Agent/1.0 (mailto:{os.getenv("GMAIL_TO")})"
 })
 
+@mcp.resource("config://app-version")
+def get_app_version() -> dict:
+    """Static resource providing application version information"""
+    return {
+        "name": "Search_server",
+        "version": "1.0.0",
+        "release_date": "2025-10-15",
+        "environment": "production"
+    }
+    
 @mcp.tool()
 def arxiv_search_tool(query: str, max_results: int = 5) -> list[dict]:
     """
