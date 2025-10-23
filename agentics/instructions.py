@@ -139,7 +139,7 @@ def diagnosis_tool():
     or generally for notable crop disease outbreaks, emerging pathogens, and diagnostic innovations. \
     Describe what kind of disease research you're looking for."
 
-def email_instructions(recipient_email:str="c.v.padeiro@gmail.com", sender_email:str="cpadeiro2012@gmail.com", report:str="", email_sender:str="email_sender"):
+def email_instruction(to_emails:str="c.v.padeiro@gmail.com", sender_email:str="cpadeiro2012@gmail.com", report:str="", email_sender_tool:str="email_sender"):
     
     to_emails=["c.v.padeiro@gmail.com", "cpadeiro2012@gmail.com"]
     from_emails=["cpadeiro2012@gmail.com"]
@@ -151,11 +151,11 @@ def email_instructions(recipient_email:str="c.v.padeiro@gmail.com", sender_email
         well presented HTML with an appropriate subject line. Before send you must make sure to translate and send the email in portuguese of portugal.
     
     IMPORTANT:
-        Make sure to use only tools '{email_sender}' provided in mcp_server to send the email"""
+        Make sure to use only tools '{email_sender_tool}' provided in mcp_server to send the email"""
         
     return EMAIL_INSTRUCTIONS
 
-def email_instruction(report:str="",  to_emails:str="c.v.padeiro@gmail.com", email_sender_tool:str="email_sender"):
+def email_instruction_(report:str="",  to_emails:str="c.v.padeiro@gmail.com", email_sender_tool:str="email_sender"):
     
     f"""
         You are an email communication assistant tasked with sending a professional HTML-formatted report to stakeholders.
@@ -170,7 +170,7 @@ def email_instruction(report:str="",  to_emails:str="c.v.padeiro@gmail.com", ema
         1. Translate the entire email content (subject and body) into European Portuguese
         2. Convert the report into clean, well-structured HTML format
         3. Create an appropriate subject line that reflects the report content
-        4. Send the email using only the '{email_sender_tool}' tool provided by mcp_server
+        4. Send the email using only the '{email_sender_tool}' tool
 
         REQUIREMENTS:
             - Language: European Portuguese (pt-PT)

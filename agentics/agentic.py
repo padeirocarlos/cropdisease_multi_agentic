@@ -44,9 +44,9 @@ class DiseaseDiagnosis:
 
         return Agent(
             name = self.name,
-            tools = self.multi_mcp_server.available_tools,
             instructions = prompt_,
             model = self.get_model(self.model_name) if model_name is None else self.get_model(model_name),
+            mcp_servers = self.multi_mcp_server.mcp_servers["search_server"],
             output_type=output_type,
             )
     
@@ -59,7 +59,7 @@ class DiseaseDiagnosis:
             
         return Agent(
             name = self.name,
-            tools = self.multi_mcp_server.available_tools,
+            # mcp_servers = self.multi_mcp_server.mcp_servers["search_server"],
             instructions = crop_disease_image_prediction(crop_disease=crop_disease, 
                                                          maize = maize, ),
             model = self.get_model(self.model_name) if model_name is None else self.get_model(model_name),
@@ -67,16 +67,13 @@ class DiseaseDiagnosis:
         
     async def crop_disease_image_generate_agent(self, prompt: str, 
                                                 model_name: str = None,
-                                                # response_format="url", 
                                                 output_type=None) -> Agent:
         if self.multi_mcp_server is None:
             self.multi_mcp_server = await self.connect_to_servers()
             
         return Agent(
             name = self.name,
-            tools = self.multi_mcp_server.available_tools,
             instructions = f"{prompt}",
-            # response_format=response_format,
             model = self.get_model(self.model_name) if model_name is None else self.get_model(model_name),
             output_type=output_type,)
         
@@ -89,14 +86,11 @@ class DiseaseDiagnosis:
                                     to_emails=to_emails, 
                                     email_sender_tool = email_sender_tool,)
 
-        # tools = [await self.multi_mcp_server.call_tool(tool_name=email_sender_tool, arguments={"body":None, "subject":None, "to_emails":None})]
-        tools = self.multi_mcp_server.available_tools
-        
         return Agent(
             name = self.name,
             instructions = prompt_,
             model = self.get_model(model_name),
-            tools = tools,
+            mcp_servers = self.multi_mcp_server.mcp_servers["email_server"],
             output_type=output_type,)
     
     async def create_disease_agent(self, query:str, diagnosis_mcp_servers, model_name:str="llama3.2", output_type=None) -> Agent:
@@ -105,7 +99,6 @@ class DiseaseDiagnosis:
             name = self.name,
             instructions = diagnosis_instructions(query),
             model = self.get_model(model_name),
-            tools = self.multi_mcp_server.available_tools,
             output_type=output_type,)
     
     async def run(self, query:str="Maize Streak Virus (MSV)", maize:str="Maize"):
@@ -121,7 +114,7 @@ class DiseaseDiagnosis:
             pathsogens = research_agent_result.final_output.pathsogens
             medicine = research_agent_result.final_output.medicine
             treatment = research_agent_result.final_output.treatment
-            await self.multi_mcp_server.cleanup()
+            # await self.multi_mcp_server.cleanup()
             
             print(f" research_agent_result : === pathsogens : {pathsogens} === \n ")
             
@@ -136,24 +129,26 @@ class DiseaseDiagnosis:
             prompt_agent_result = await Runner.run(prompt_agent, messages)
             prompt = prompt_agent_result.final_output.prompt
             caption = prompt_agent_result.final_output.caption
-            await self.multi_mcp_server.cleanup()
+            # await self.multi_mcp_server.cleanup()
             
             print(f" prompt_agent_result : === prompt : {prompt} === \n caption : {caption}  \n")
             
-            system_message = (f"""
-                "You are an email communication assistant tasked with sending a professional HTML-formatted report to Agriculter farmer.""")
+            system_message = (f"""" You are an email communication assistant tasked with sending a 
+                                    professional HTML-formatted report to Agriculter farmer.""")
             
             report_ = f"Treatment: {treatment} \n  Medicine: {medicine}\n Pathsogens: {pathsogens} \n "
             
             
-            generate_agent = await self.create_email_agent(report=report_,
+            email_agent = await self.create_email_agent(report=report_,
                                                          to_emails="c.v.padeiro@gmail.com, cpadeiro2012@gmail.com",
-                                                         model_name= "llama3.2",
+                                                         model_name= "qwen3",
                                                          email_sender_tool="email_sender",
-                                                         output_type=ImageUrlResult)  # "llava7B_v", "qwen2_v", "gemma12B_v"
+                                                         )  # "llava7B_v", "qwen2_v", "gemma12B_v"  llama3.2
             
-            await Runner.run(generate_agent, system_message)
+            await Runner.run(email_agent, system_message)
             await self.multi_mcp_server.cleanup()
+            print(f"  =============== email_agent  ================== \n ")
+            
             
             for i, prompt_ in enumerate(prompt):
                 dt = datetime.now()
@@ -161,11 +156,11 @@ class DiseaseDiagnosis:
                 out_path_name=os.path.join(os.getcwd(),"generate_image_path",f"{name}.png")
                 # out_path_name=os.path.join("generate_image_path",f"{name}.png")
                 
-                self.image_generate.memory_optimizer(optimizer_type="offload") 
+                # self.image_generate.memory_optimizer(optimizer_type="offload") 
                 self.image_generate.memory_optimizer(optimizer_type="vae_slicing") 
                 self.image_generate.memory_optimizer(optimizer_type="attention_slicing") 
                 
-                image = self.image_generate.generate(prompt = prompt_, device="cpu")
+                image = self.image_generate.generate(prompt = prompt_, device="cpu", pipeline_type="diffusion")
                 image[0].save(out_path_name)
                 if i>=3: # consider only 3 prompts
                     break

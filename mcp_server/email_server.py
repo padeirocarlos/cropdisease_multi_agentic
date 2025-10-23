@@ -54,7 +54,7 @@ email_tool_def = {
 }
 @mcp.tool()
 def email_sender(body: str=None, subject: str=None, to_emails:list=None):
-    """ Send out an email with the given body to all sales prospects via Gmail SMTP """
+    """ Send out an email with the given body, subject and to_emails via Gmail SMTP """
     
     # Set up email sender, recipient, and content
     from_email = os.getenv("GMAIL_USER")  # Replace with your Gmail address or set as env var
@@ -69,7 +69,7 @@ def email_sender(body: str=None, subject: str=None, to_emails:list=None):
     to_email = None
     
     if to_emails is None:
-        to_emails = ["c.v.padeiro@gmail.com", "cpadeiro2012@gmail.com"]
+        to_emails = [from_email, to_email]
     
     if subject is None:
         msg['Subject'] = "Sales email list test 1"

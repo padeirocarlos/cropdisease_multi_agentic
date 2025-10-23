@@ -36,7 +36,7 @@ class ImageGenerator:
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
                     model_id,
                     dtype = self.dtype,
-                    safety_checker = True, 
+                    # safety_checker = True, 
                     use_safetensors = True,
                     # variant="fp16"
                     )
@@ -61,7 +61,7 @@ class ImageGenerator:
             self.pipeline = AutoPipelineForText2Image.from_pretrained(
                     model_id,
                     dtype = self.dtype,
-                    safety_checker = True, 
+                    # safety_checker = True, 
                     use_safetensors = True,
                     # variant="fp16"
                     ).to(device)
@@ -83,7 +83,7 @@ class ImageGenerator:
             self.pipeline = DiffusionPipeline.from_pretrained(
                     model_id,
                     dtype = self.dtype,
-                    safety_checker = True, 
+                    # safety_checker = True, 
                     use_safetensors = True,
                     # variant="fp16"
                     ).to(device)
