@@ -21,7 +21,6 @@ class Multi_MCP_Server:
     def __init__(self):
         # Initialize session and client objects
         self.exit_stack = AsyncExitStack() # new
-        
         self.available_tools: List[ToolDefinition] = [] # new
         self.mcp_servers: Dict[str, list[MCPServerStdio]] = {} # new
         self.tool_to_session: Dict[str, ClientSession] = {} # new

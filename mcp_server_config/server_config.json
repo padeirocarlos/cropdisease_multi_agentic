@@ -8,7 +8,6 @@
                 "@modelcontextprotocol/server-filesystem",
                 "." ]
         },
-        
 
         "email_server": {
             "command": "uv",

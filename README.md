@@ -19,6 +19,7 @@ This project implements a **multi-agent system** for detecting and analyzing cro
 - **Data**: Crop disease datasets (PlantVillage or custom)
 
 ## Description of Flowchart
+![Crop Disease Flowchart logo](dev/Flowchart.png)
 
 !Flowchart.png
 - Input Image → processed by Data Preprocessing Agent
